@@ -11,7 +11,7 @@ namespace ImportMatterExcel
 {
     class Program
     {
-        static string outputFilePath    = @"/Users/adjo/Import/processed/ELAPP-Processed.json";
+        static string outputFilePath    = @"/Users/adjo/Import/processed/DWS-Processed.json";
 
         static List<Question> questions = new List<Question>();
 
@@ -34,7 +34,7 @@ namespace ImportMatterExcel
                 #region Open the entire Excel File
                 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
-                FileStream stream = File.Open("/Users/adjo/Import/ELAPP.xlsx", FileMode.Open, FileAccess.Read);
+                FileStream stream = File.Open("/Users/adjo/Import/DWS.xlsx", FileMode.Open, FileAccess.Read);
 
                 //2. Reading from a OpenXml Excel file (2007 format; *.xlsx)
                 IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(stream);
@@ -155,10 +155,11 @@ namespace ImportMatterExcel
                             // take the value in cell 2 and look up the value in the questions
                             string questionTextValue = dr[2].ToString();
 
-                            Question questionWithAnswers = questions.Find(x => x.uuid == currentQuestion);
+                            Question questionWithAnswers = questions.Find(x => x.uuid == currentQuestion);  // get the question and all it's answers
 
                             if (questionWithAnswers != null)
                             {
+                                // get the correct answer
                                 var questionActualValue = questionWithAnswers.answers.Find(x => x.text.ToString() == questionTextValue).answer;
 
                                 // example "75007aca-e9e6-4959-b79d-a06809b9d960":{ "answer":"a"}
@@ -166,8 +167,8 @@ namespace ImportMatterExcel
                                 finalOutputString += "{" + "\"" + "answer\"" + ":";
                                 finalOutputString += "\"" + questionActualValue + "\"}," + Environment.NewLine;
 
-                                File.AppendAllText(outputFilePath, finalOutputString, Encoding.UTF8);
-                                lookingForAnswer = false;
+                                File.AppendAllText(outputFilePath, finalOutputString, Encoding.UTF8);   // write the answer to a file
+                                lookingForAnswer = false;   // allow the next question to be found
                             }
                         }
 
