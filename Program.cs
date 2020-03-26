@@ -11,6 +11,10 @@ namespace ImportMatterExcel
 {
     class Program
     {
+        static string outputFilePath    = @"/Users/adjo/Import/MAS-Processed.json";
+
+        static List<Question> questions = new List<Question>();
+
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
@@ -24,7 +28,7 @@ namespace ImportMatterExcel
                 // the answer is the value of the question -- not the item
 
                 #region Read Questions from JSON into Collection
-                var notificationList = JsonConvert.DeserializeObject<List<Question>>(getListOfQuestions());
+                questions = JsonConvert.DeserializeObject<List<Question>>(getListOfQuestions());
                 #endregion
 
                 #region Open the entire Excel File
@@ -63,7 +67,7 @@ namespace ImportMatterExcel
             }
             catch (Exception ex)
             {
-                string test = string.Empty;
+                string test = string.Empty; // just a line to stop on
             }
 
         }
@@ -100,9 +104,51 @@ namespace ImportMatterExcel
                 // column 1 column 2    column 3    column 4        column 5
                 // 1        Question    Possible Answers    answer      X(if answered)
 
+                // find the question in the Excel, find out where the answer should be and pluck the answer out
+
+                bool lookingForAnswer   = false;
+                string currentQuestion  = string.Empty;
+
                 foreach(DataRow dr in data.Rows)
                 {
-                    string test = string.Empty;
+                    // whenever there's a value in dr[4] (Column 4) = this is a new question -- grab the guid
+                    // whenever there's a value in dr[3] (Column 3) = the user says this is the answer -- grab the value to search the questions
+                    //              what's in the question can give us the value
+
+                    // new question. let's see how they answered
+                    if (dr[4].ToString() != string.Empty )
+                    {
+                        currentQuestion = dr[4].ToString();
+                        lookingForAnswer = true;
+                    }
+
+                    // we are on the same question but are looking in cell 3 for an X
+                    if ( lookingForAnswer )
+                    {
+                        if( dr[3].ToString() != string.Empty )
+                        {
+                            // we've got action -- this is the answered question
+                            // take the value in cell 2 and look up the value in the questions
+                            string questionTextValue = dr[2].ToString();
+
+                            Question questionWithAnswers = questions.Find(x => x.uuid == currentQuestion);
+
+                            if (questionWithAnswers != null)
+                            {
+                                var questionActualValue = questionWithAnswers.answers.Find(x => x.value.ToString() == questionTextValue).answer;
+
+                                // example "75007aca-e9e6-4959-b79d-a06809b9d960":{ "answer":"a"}
+                                string finalOutputString = "\"" + currentQuestion + "\":";
+                                finalOutputString += "{" + "\"" + "answer\"" + ":";
+                                finalOutputString += "{" + "\"" + questionActualValue + "\"},";
+
+                                File.AppendAllText(outputFilePath, finalOutputString, Encoding.UTF8);
+                                lookingForAnswer = false;
+                            }
+                        }
+
+                    }
+
                 }
             }
             catch (Exception ex)
