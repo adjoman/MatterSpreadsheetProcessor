@@ -11,7 +11,8 @@ namespace ImportMatterExcel
 {
     class Program
     {
-        static string outputFilePath    = @"/Users/adjo/Import/processed/DWS-Processed.json";
+        static string outputFilePath    = @"/Users/adjo/Import/processed/DWS-DONOTUSE-Processed.json";
+        static string questionsPath = @"/Users/adjo/Import/questions.json";
 
         static List<Question> questions = new List<Question>();
 
@@ -91,6 +92,7 @@ namespace ImportMatterExcel
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex);
                 string test = string.Empty; // just a line to stop on
             }
 
@@ -103,12 +105,16 @@ namespace ImportMatterExcel
 
             try
             {
-                string path = @"/Users/adjo/Import/questions.json";
+                string path = questionsPath;
 
-                if (File.Exists(path))
+                if (File.Exists(path))  // don't try and read it if it's not there
                 {
                     // Open the file to read from.
                     returnString = File.ReadAllText(path);
+                }
+                else
+                {
+                    throw new Exception("Questions file not loaded into location: " + path);
                 }
             }
             catch (Exception ex)
@@ -146,7 +152,7 @@ namespace ImportMatterExcel
                         lookingForAnswer = true;
                     }
 
-                    // we are on the same question but are looking in cell 3 for an X
+                    // we are on the same question but are looking in cell 3 for an X or any text really
                     if ( lookingForAnswer )
                     {
                         if( dr[3].ToString() != string.Empty )
