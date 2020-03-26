@@ -11,7 +11,7 @@ namespace ImportMatterExcel
 {
     class Program
     {
-        static string outputFilePath    = @"/Users/adjo/Import/MAS-Processed.json";
+        static string outputFilePath    = @"/Users/adjo/Import/processed/ELAPP-Processed.json";
 
         static List<Question> questions = new List<Question>();
 
@@ -34,7 +34,7 @@ namespace ImportMatterExcel
                 #region Open the entire Excel File
                 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
-                FileStream stream = File.Open("/Users/adjo/Import/MAS_Boarding_WEB_Application_Assessment_Questionnaire.xlsx", FileMode.Open, FileAccess.Read);
+                FileStream stream = File.Open("/Users/adjo/Import/ELAPP.xlsx", FileMode.Open, FileAccess.Read);
 
                 //2. Reading from a OpenXml Excel file (2007 format; *.xlsx)
                 IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(stream);
@@ -45,12 +45,36 @@ namespace ImportMatterExcel
 
                 foreach(DataTable table in result.Tables)
                 {
-                    switch(table.TableName.ToLower())
+                    if ( table.TableName.ToLower() != "introduction")
                     {
-                        case "infrastructure":
-                            processInfra(table);
-                            break;
+                        processInfra(table);
                     }
+
+                    //switch(table.TableName.ToLower())
+                    //{
+                    //    case "infrastructure":
+                    //        processInfra(table);
+                    //        break;
+                    //    case "optimization patterns":
+                    //        processInfra(table);
+                    //        break;
+                    //    case "transaction load":
+                    //        processInfra(table);
+                    //        break;
+                    //    case "business value":
+                    //        processInfra(table);
+                    //        break;
+                    //    case "business value":
+                    //        processInfra(table);
+                    //        break;
+                    //    case "business value":
+                    //        processInfra(table);
+                    //        break;
+                    //    case "securituy":
+                    //        processInfra(table);
+                    //        break;
+
+                    //}
                 }
 
                 //// how does the Excel file look -- change this stuff
@@ -135,12 +159,12 @@ namespace ImportMatterExcel
 
                             if (questionWithAnswers != null)
                             {
-                                var questionActualValue = questionWithAnswers.answers.Find(x => x.value.ToString() == questionTextValue).answer;
+                                var questionActualValue = questionWithAnswers.answers.Find(x => x.text.ToString() == questionTextValue).answer;
 
                                 // example "75007aca-e9e6-4959-b79d-a06809b9d960":{ "answer":"a"}
                                 string finalOutputString = "\"" + currentQuestion + "\":";
                                 finalOutputString += "{" + "\"" + "answer\"" + ":";
-                                finalOutputString += "{" + "\"" + questionActualValue + "\"},";
+                                finalOutputString += "\"" + questionActualValue + "\"}," + Environment.NewLine;
 
                                 File.AppendAllText(outputFilePath, finalOutputString, Encoding.UTF8);
                                 lookingForAnswer = false;
